@@ -2,7 +2,7 @@
 <p:declare-step 
     xmlns:p="http://www.w3.org/ns/xproc"
     xmlns:c="http://www.w3.org/ns/xproc-step" 
-    xmlns:letex="http://www.le-tex.de/namespace"
+    xmlns:tr="http://transpect.io"
     version="1.0">
     
     <p:input port="source">
@@ -13,12 +13,12 @@
     <p:option name="zip" required="true"/>
     <p:option name="path" required="true"/>
     
-    <p:import href="../ltx-lib.xpl"/>
+    <p:import href="unzip-declaration.xpl"/>
     
-    <letex:unzip name="unzip">
+    <tr:unzip name="unzip">
         <p:with-option name="zip" select="$zip"/>
         <p:with-option name="dest-dir" select="$path"/>
         <p:with-option name="overwrite" select="'yes'"/>
-    </letex:unzip>
+    </tr:unzip>
     
 </p:declare-step>
