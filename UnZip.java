@@ -94,6 +94,7 @@ public class UnZip
                     
                     if(entry.isDirectory()) {
                         File dir = new File (destination + "/" + entry);
+                        result += "<c:directory name=\"" + entry.getName() + "\"/>";
                         if (!dir.exists()) { dir.mkdirs(); }
                     } else {
                         String destname = destination + "/" + entry.getName();
