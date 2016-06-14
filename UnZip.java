@@ -137,7 +137,7 @@ public class UnZip
 			
 			zis.close();
 			if (numFiles == 0) {
-			  result = "<c:error xmlns:c=\"http://www.w3.org/ns/xproc-step\" xmlns:letex=\"http://www.le-tex.de/namespace\" code=\"zip-error\" href=\""+(folder.toURI()+source)+"\">No content processed. Zip file may empty or corrupted.</c:error>";
+			  result = "<c:error xmlns:c=\"http://www.w3.org/ns/xproc-step\" xmlns:letex=\"http://www.le-tex.de/namespace\" code=\"zip-error\" href=\""+(folder.toURI()+source)+"\">No content processed. Zip file may be empty or corrupted.</c:error>";
 			} else {
 			  result += "</c:files>";
 			}
