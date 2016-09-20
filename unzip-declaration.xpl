@@ -65,8 +65,8 @@
       <p:pipe port="result" step="recursive-dirlist"/>
     </p:output>
     <p:variable name="notdir" select="/*/@lastpath"/>
-    <p:variable name="actual-dest-dir" select="if ($safe = ('no', 'false')) then /*/@os-path
-                                               else concat(/*/@os-path, '/', replace($notdir, '[^a-z0-9._-]', '', 'i'), '.unzip.tmp')">
+    <p:variable name="actual-dest-dir" select="if ($safe = ('no', 'false') or ends-with(/*/@os-path, '.tmp')) then /*/@os-path
+                                               else concat(/*/@os-path, '/', replace($notdir, '[^a-z0-9._-]', '', 'i'), '.tmp')">
       <p:pipe port="result" step="unsafe-dest-dir-uri"/>
     </p:variable>
     <tr-internal:unzip name="internal-unzip">
