@@ -2,6 +2,7 @@
 <p:declare-step 
   xmlns:p="http://www.w3.org/ns/xproc" 
   xmlns:c="http://www.w3.org/ns/xproc-step" 
+  xmlns:cx="http://xmlcalabash.com/ns/extensions"
   xmlns:tr="http://transpect.io"
   xmlns:tr-internal="http://transpect.io/internal"
   name="unzip"
@@ -18,7 +19,8 @@
   </p:documentation>
 
   <p:output port="result" primary="true">
-    <p:documentation>/c:files/c:file</p:documentation>
+    <p:documentation>/c:files[@xml:base]/c:file, where @xml:base is the destination directory. It should have 
+    a trailing slash on @xml:base.</p:documentation>
     <p:pipe port="result" step="group"/>
   </p:output>
   <p:serialization port="result" omit-xml-declaration="false" indent="true"/>
@@ -42,7 +44,8 @@
   </p:option>
   <p:option name="safe" select="'yes'">
     <p:documentation>Whether to create a new directory below the specified dest-dir, in order to avoid inadvertent 
-      deletion of precious directories.</p:documentation>
+      deletion of precious directories. If dest-dir ends in '.tmp', it is assumed that it may safely be overwritten
+    in any case.</p:documentation>
   </p:option>
 
   <p:import href="internal-unzip-declaration.xpl"/>
@@ -59,7 +62,7 @@
   
   <p:group name="group">
     <p:output port="result" primary="true">
-      <p:pipe port="result" step="internal-unzip"/>
+      <p:pipe port="result" step="fix-xml-base"/>
     </p:output>
     <p:output port="list-with-directories">
       <p:pipe port="result" step="recursive-dirlist"/>
@@ -76,6 +79,10 @@
       <p:with-option name="dest-dir" select="$actual-dest-dir"/>
       <p:with-option name="overwrite" select="$overwrite"/>
     </tr-internal:unzip>
+    <p:add-attribute name="fix-xml-base" match="/*" attribute-name="xml:base">
+      <p:documentation>Sometimes the trailing slash was not included, but we need to make sure it’s there.</p:documentation>
+      <p:with-option name="attribute-value" select="replace(/*/@xml:base, '([^/])$', '$1/')"/>
+    </p:add-attribute>
     <tr:recursive-directory-list name="recursive-dirlist">
       <p:with-option name="path" select="/*/@xml:base"/>
     </tr:recursive-directory-list>
