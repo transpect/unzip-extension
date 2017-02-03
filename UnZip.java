@@ -61,13 +61,14 @@ public class UnZip extends DefaultStep {
         if(!zipString.equals("")) {
             if(!pathString.equals("")) {
                 // create base uri
-                URI baseuri = new File(zipString).toURI();
+                URI baseuri = new File(pathString).toURI();
                 // main pipeline
                 try {
                     createOutputDirectory(pathString, overwrite.getString());
                     ArrayList<String> fileList = unzip(zipString, fileString, pathString);
                     XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
                     result.write(XMLFileList);
+                    System.out.println(XMLFileList.toString());
                     System.out.println("[info] unzip finished.");
                 } catch(IOException ioe) {
                     System.out.println("[ERROR] " + ioe.getMessage());
