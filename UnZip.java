@@ -1,156 +1,184 @@
-/**
- * Unzip extension for non-XML files
- *
- * @author Lars Wittmar -- le-tex publishing services GmbH
- * @date   2012-03-08
- */
+import java.io.IOException;
+import java.io.File;
+import java.io.InputStream;
+import java.io.FileOutputStream;
 
-import com.xmlcalabash.core.XProcException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+
+import java.net.URI;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
+import org.apache.commons.io.FileUtils;
+
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XdmNode;
+
+import com.xmlcalabash.core.XMLCalabash;
 import com.xmlcalabash.core.XProcRuntime;
+import com.xmlcalabash.core.XProcConstants;
 import com.xmlcalabash.io.ReadablePipe;
 import com.xmlcalabash.io.WritablePipe;
 import com.xmlcalabash.library.DefaultStep;
+import com.xmlcalabash.model.RuntimeValue;
 import com.xmlcalabash.runtime.XAtomicStep;
-import java.io.StringReader;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import net.sf.saxon.s9api.DocumentBuilder;
-import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.XdmNode;
-import net.sf.saxon.s9api.XdmSequenceIterator;
-import net.sf.saxon.s9api.QName;
-import net.sf.saxon.s9api.Axis;
-import org.apache.commons.io.FileUtils;
-import java.io.*;
-import java.io.File;
-import java.util.zip.*;
-import java.util.Arrays;
+import com.xmlcalabash.util.TreeWriter;
 
-public class UnZip
-        extends DefaultStep
-{
-    public UnZip(XProcRuntime runtime, XAtomicStep step)
-    {
+public class UnZip extends DefaultStep {
+    private WritablePipe result = null;
+    
+    public UnZip(XProcRuntime runtime, XAtomicStep step) {
         super(runtime,step);
     }
-
     @Override
-    public void setOutput(String port, WritablePipe pipe)
-    {
-        myResult = pipe;
+    public void setOutput(String port, WritablePipe pipe) {
+        result = pipe;
     }
-
     @Override
-    public void reset()
-    {
-        myResult.resetWriter();
+    public void reset() {
+        result.resetWriter();
     }
-
     @Override
-    public void run()
-        throws SaxonApiException
-    {
+    public void run() throws SaxonApiException {
         super.run();
-        
-        String result, source = null;
-        File folder = null;
-        try {
-			source = getOption(new QName("zip")).getString();
-			String destination = getOption(new QName("dest-dir")).getString();
-            String removeS = getOption(new QName("overwrite")).getString();
-            boolean remove = false; 
-            if (removeS != null) {
-                if (removeS.matches("yes")) {
-                    remove = true;
-                }
-            }
 
-			String filename = "";
-			if (getOption(new QName("file"))!=null) {
-                filename = getOption(new QName("file")).getString();
-			}
-			
-			folder = new File(destination);
-            if (remove) {
-                FileUtils.deleteDirectory(folder);
-            }
-			if(! folder.exists()) { 
-                folder.mkdirs(); 
-            }
-			
-			final int BUFFER = 2048;
-			BufferedOutputStream dest = null;
-			FileInputStream fis = new FileInputStream(source);
-			ZipInputStream zis = new ZipInputStream(new BufferedInputStream(fis));
-			ZipEntry entry;
+        RuntimeValue zip  = getOption(new QName("zip"));
+        RuntimeValue file = getOption(new QName("file"));
+        RuntimeValue path = getOption(new QName("path"));
+        RuntimeValue overwrite = getOption(new QName("overwrite"));
 
-            int numFiles = 0;
-			result = "<c:files xmlns:c=\"http://www.w3.org/ns/xproc-step\" xml:base=\"" + folder.toURI() + "\">";
-			//without given fileNode extract everything
-			if(filename.equals("")) {
-                while((entry = zis.getNextEntry()) != null) {
-                    int count;
-                    byte data[] = new byte[BUFFER];
-                    
-                    if(entry.isDirectory()) {
-                        File dir = new File (destination + "/" + entry);
-                        if (!dir.exists()) { dir.mkdirs(); }
-                    } else {
-                        String destname = destination + "/" + entry.getName();
-                        String destdirname = destname.replaceAll("[^/]+$", "");
-                        File destdir = new File(destdirname);
-                        if (!destdir.exists()) { destdir.mkdirs(); }
-                        FileOutputStream fos = new FileOutputStream(destname);
-                        numFiles++;
-                        result += "<c:file name=\"" + entry.getName() + "\"/>";
-                        dest = new BufferedOutputStream(fos, BUFFER);
-                        while ((count = zis.read(data, 0, BUFFER)) != -1) {
-                            dest.write(data, 0, count);
-                        }
-                        dest.flush();
-                        dest.close();
-                    }
-                }
-			} else {
-                while((entry = zis.getNextEntry()) != null) {
-                    if(filename.equals(entry.getName())) {
-                        int count;
-                        byte data[] = new byte[BUFFER];
-						
-                        String destname = destination + "/" + entry.getName();
-                        String destdirname = destname.replaceAll("[^/]+$", "");
-                        File destdir = new File(destdirname);
-                        if (!destdir.exists()) { destdir.mkdirs(); }
-                        FileOutputStream fos = new FileOutputStream(destination + "/" + entry.getName());
-                        numFiles++;
-                        result += "<c:file name=\"" + entry.getName() + "\"/>";
-                        dest = new BufferedOutputStream(fos, BUFFER);
-                        while ((count = zis.read(data, 0, BUFFER)) != -1) {
-                            dest.write(data, 0, count);
-                        }
-                        dest.flush();
-                        dest.close();
-                    }							 
-                }
-			}
-			
-			zis.close();
-			if (numFiles == 0) {
-			  result = "<c:error xmlns:c=\"http://www.w3.org/ns/xproc-step\" xmlns:letex=\"http://www.le-tex.de/namespace\" code=\"zip-error\" href=\""+(folder.toURI()+source)+"\">No content processed. Zip file may empty or corrupted.</c:error>";
-			} else {
-			  result += "</c:files>";
-			}
-            
-		  } catch(Exception e) {
-			result = "<c:error xmlns:c=\"http://www.w3.org/ns/xproc-step\" xmlns:letex=\"http://www.le-tex.de/namespace\" code=\"zip-error\" href=\""+(folder.toURI()+source)+"\">Zip file seems to be corrupted: "+e.getMessage()+"</c:error>";
-		  }
-        DocumentBuilder builder = runtime.getProcessor().newDocumentBuilder();
-        Source src = new StreamSource(new StringReader(result));
-        XdmNode doc = builder.build(src);
+        // submit empty string if attribute is not set
+        String zipString  = (zip  != null) ? zip.getString()  : "";
+        String fileString = (file != null) ? file.getString() : "";
+        String pathString = (path != null) ? path.getString() : "";
 
-        myResult.write(doc);
+        if(!zipString.equals("")) {
+            if(!pathString.equals("")) {
+                // create base uri
+                URI baseuri = path.getBaseURI().resolve(pathString);
+                // main pipeline
+                try {
+                    createOutputDirectory(pathString, overwrite.getString());
+                    ArrayList<String> fileList = unzip(zipString, fileString, pathString);
+                    XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
+                    result.write(XMLFileList);
+                } catch(IOException ioe) {
+                    System.out.println("[ERROR] " + ioe.getMessage());
+                    result.write(createXMLError(ioe.getMessage(), zipString, runtime));
+                }
+            } else {
+                result.write(createXMLError("The attribute path must not be an empty string.", zipString, runtime));
+            }
+        } else {
+            result.write(createXMLError("The attribute zip must not be an empty string.", zipString, runtime));
+        }
     }
+    private static void createOutputDirectory(String directory, String overwrite) throws IOException{
+        Path path = Paths.get(directory).toAbsolutePath();
+        File dir  = new File(path.toString());
+        if (Files.exists(path)) {
+            System.out.println(Files.exists(path) + "[info] Directory already exists: " + path);
+            // delete directory recursively
+            if(overwrite.equals("yes")) {
+                System.out.println("[info] Deleting directory: " + path);
+                // see https://twitter.com/gimsieke/status/691323769445601281
+                if(path.getNameCount() != 0) {                    
+                    FileUtils.deleteDirectory(dir);
+                    Files.createDirectories(path);
+                } else {
+                    System.out.println("[WARNING] Directory not deleted. Seems to be your root directory. Index: " + path.getNameCount());
+                }
+            }
+       } else {
+           System.out.println("[info] Directory does not exist. Create directory: " + path);
+           try {
+               Files.createDirectories(path);
+           } catch(IOException ioe) {
+               System.out.println("[ERROR] " + ioe.getMessage());
+           }
+        }
+    }
+    // create an ArrayList which contains the filenames
+    private static ArrayList<String> unzip(String zip, String file, String outputDirectory) throws IOException {
+        final ZipFile zipFile = new ZipFile( zip );
+        ArrayList<String> fileList = new ArrayList<String>();
+        try {
+            final Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
+            System.out.println("[unzip] " + zip + " ==> " + outputDirectory);
+            if(!file.equals("")){
+                // unzip single file
+                final ZipEntry zipEntry = zipFile.getEntry(file);
+                String fileName = unzipSingleFile(zipFile, zipEntry, outputDirectory);
+                fileList.add(fileName);
+            } else {
+                // unzip all files
+                while (zipEntries.hasMoreElements()){
+                    final ZipEntry zipEntry = zipEntries.nextElement();
+                    String fileName = unzipSingleFile(zipFile, zipEntry, outputDirectory);
+                    fileList.add(fileName);
+                }
+            }
+        } finally {
+            zipFile.close();
+        }
+        System.out.println("[info] Unzipped " + fileList.size() + " files");
+        return fileList;
+    }
+    private static String unzipSingleFile(ZipFile zipFile, ZipEntry zipEntry, String outputDirectory) throws IOException {
+        String fileName = zipEntry.getName();
+        File newFile = new File(outputDirectory + File.separator + fileName).getAbsoluteFile();
 
-    private WritablePipe myResult = null;
+        //create directories on demand
+        new File(newFile.getParent()).mkdirs();
+
+        FileOutputStream fos = new FileOutputStream(newFile);
+        byte[] buffer = new byte[4096];
+        InputStream in = zipFile.getInputStream(zipEntry);
+        int len = in.read(buffer);
+        while (len != -1) {
+            fos.write(buffer, 0, len);
+            len = in.read(buffer);
+        }
+        return fileName;
+    }
+    // create regular XML output with a list of files
+    private static XdmNode createXMLFileList(ArrayList<String> fileList, URI baseuri, XProcRuntime runtime) throws SaxonApiException {
+        QName xml_base = new QName("xml", "http://www.w3.org/XML/1998/namespace" ,"base");
+        QName c_files = new QName("c", "http://www.w3.org/ns/xproc-step" ,"files"); 
+        QName c_file = new QName("c", "http://www.w3.org/ns/xproc-step" ,"file");
+        TreeWriter tree = new TreeWriter(runtime);
+        tree.startDocument(baseuri);
+        tree.addStartElement(c_files);
+        tree.addAttribute(xml_base, baseuri.toString());
+        for (String fileName: fileList) {
+            System.out.println(fileName);
+            tree.addStartElement(c_file);
+            tree.addAttribute(new QName("name"), fileName);
+            tree.addEndElement();
+        }
+        tree.addEndElement();
+        tree.endDocument();
+        return tree.getResult();
+    }
+    // in case of errors, present them as XML
+    private XdmNode createXMLError(String message, String zip, XProcRuntime runtime){
+        TreeWriter tree = new TreeWriter(runtime);
+        tree.startDocument(step.getNode().getBaseURI());
+        tree.addStartElement(XProcConstants.c_errors);
+        tree.addAttribute(new QName("code"), "zip-error");
+        tree.addAttribute(new QName("href"), zip);
+        tree.addStartElement(XProcConstants.c_error);
+        tree.addAttribute(new QName("code"), "error");
+        tree.addText(message);
+        tree.addEndElement();
+        tree.addEndElement();
+        tree.endDocument();
+        return tree.getResult();        
+    }
 }
-
