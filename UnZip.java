@@ -50,7 +50,7 @@ public class UnZip extends DefaultStep {
 
         RuntimeValue zip  = getOption(new QName("zip"));
         RuntimeValue file = getOption(new QName("file"));
-        RuntimeValue path = getOption(new QName("path"));
+        RuntimeValue path = getOption(new QName("dest-dir"));
         RuntimeValue overwrite = getOption(new QName("overwrite"));
 
         // submit empty string if attribute is not set
