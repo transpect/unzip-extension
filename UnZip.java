@@ -66,7 +66,7 @@ public class UnZip extends DefaultStep {
                 URI baseuri = new File(pathString).toURI();
                 // main pipeline
                 try {
-                    createOutputDirectory(pathString, overwriteBool);
+                    createDirectory(pathString, overwriteBool);
                     ArrayList<String> fileList = unzip(zipString, fileString, pathString);
                     XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
                     result.write(XMLFileList);
@@ -82,7 +82,7 @@ public class UnZip extends DefaultStep {
             result.write(createXMLError("The attribute zip must not be an empty string.", zipString, runtime));
         }
     }
-    private static void createOutputDirectory(String directory, boolean overwrite) throws IOException{
+    private static void createDirectory(String directory, boolean overwrite) throws IOException{
         Path path = Paths.get(directory).toAbsolutePath();
         File dir  = new File(path.toString());
         if (Files.exists(path)) {
@@ -99,7 +99,6 @@ public class UnZip extends DefaultStep {
                 }
             }
        } else {
-           System.out.println("[info] Unzip: Directory does not exist. Create directory: " + path);
            try {
                Files.createDirectories(path);
            } catch(IOException ioe) {
@@ -135,18 +134,20 @@ public class UnZip extends DefaultStep {
     }
     private static String unzipSingleFile(ZipFile zipFile, ZipEntry zipEntry, String outputDirectory) throws IOException {
         String fileName = zipEntry.getName();
-        File newFile = new File(outputDirectory + File.separator + fileName).getAbsoluteFile();
-
-        //create directories on demand
-        new File(newFile.getParent()).mkdirs();
-
-        FileOutputStream fos = new FileOutputStream(newFile);
-        byte[] buffer = new byte[4096];
-        InputStream in = zipFile.getInputStream(zipEntry);
-        int len = in.read(buffer);
-        while (len != -1) {
-            fos.write(buffer, 0, len);
-            len = in.read(buffer);
+        if(zipEntry.isDirectory()) {
+            createDirectory(fileName, false);
+        } else {
+            File newFile = new File(outputDirectory + File.separator + fileName).getAbsoluteFile();
+            //create directories on demand
+            new File(newFile.getParent()).mkdirs();
+            FileOutputStream fos = new FileOutputStream(newFile);
+            byte[] buffer = new byte[4096];
+            InputStream in = zipFile.getInputStream(zipEntry);
+            int len = in.read(buffer);
+            while (len != -1) {
+                fos.write(buffer, 0, len);
+                len = in.read(buffer);
+            }
         }
         return fileName;
     }
