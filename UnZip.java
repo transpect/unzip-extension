@@ -53,10 +53,12 @@ public class UnZip extends DefaultStep {
         RuntimeValue path = getOption(new QName("dest-dir"));
         RuntimeValue overwrite = getOption(new QName("overwrite"));
 
+
         // submit empty string if attribute is not set
         String zipString  = (zip  != null) ? zip.getString()  : "";
         String fileString = (file != null) ? file.getString() : "";
         String pathString = (path != null) ? path.getString() : "";
+        boolean overwriteBool = (overwrite != null && overwrite.getString().equals("yes")) ? true : false;
 
         if(!zipString.equals("")) {
             if(!pathString.equals("")) {
@@ -64,13 +66,13 @@ public class UnZip extends DefaultStep {
                 URI baseuri = new File(pathString).toURI();
                 // main pipeline
                 try {
-                    createOutputDirectory(pathString, overwrite.getString());
+                    createOutputDirectory(pathString, overwriteBool);
                     ArrayList<String> fileList = unzip(zipString, fileString, pathString);
                     XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
                     result.write(XMLFileList);
-                    System.out.println("[info] unzip finished.");
+                    System.out.println("[info] Unzip finished successfully.");
                 } catch(IOException ioe) {
-                    System.out.println("[ERROR] " + ioe.getMessage());
+                    System.out.println("[ERROR] Unzip: " + ioe.getMessage());
                     result.write(createXMLError(ioe.getMessage(), zipString, runtime));
                 }
             } else {
@@ -80,24 +82,24 @@ public class UnZip extends DefaultStep {
             result.write(createXMLError("The attribute zip must not be an empty string.", zipString, runtime));
         }
     }
-    private static void createOutputDirectory(String directory, String overwrite) throws IOException{
+    private static void createOutputDirectory(String directory, boolean overwrite) throws IOException{
         Path path = Paths.get(directory).toAbsolutePath();
         File dir  = new File(path.toString());
         if (Files.exists(path)) {
-            System.out.println(Files.exists(path) + "[info] Directory already exists: " + path);
+            System.out.println("[info] Unzip: Directory already exists: " + path);
             // delete directory recursively
-            if(overwrite.equals("yes")) {
-                System.out.println("[info] Deleting directory: " + path);
+            if(overwrite) {
+                System.out.println("[info] Unzip: Deleting directory: " + path);
                 // see https://twitter.com/gimsieke/status/691323769445601281
                 if(path.getNameCount() != 0) {                    
                     FileUtils.deleteDirectory(dir);
                     Files.createDirectories(path);
                 } else {
-                    System.out.println("[WARNING] Directory not deleted. Seems to be your root directory. Index: " + path.getNameCount());
+                    System.out.println("[WARNING] Unzip: Directory not deleted. Seems to be your root directory. Index: " + path.getNameCount());
                 }
             }
        } else {
-           System.out.println("[info] Directory does not exist. Create directory: " + path);
+           System.out.println("[info] Unzip: Directory does not exist. Create directory: " + path);
            try {
                Files.createDirectories(path);
            } catch(IOException ioe) {
@@ -111,7 +113,7 @@ public class UnZip extends DefaultStep {
         ArrayList<String> fileList = new ArrayList<String>();
         try {
             final Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
-            System.out.println("[unzip] " + zip + " ==> " + outputDirectory);
+            System.out.println("[info] Unzipping: " + zip + " ==> " + outputDirectory);
             if(!file.equals("")){
                 // unzip single file
                 final ZipEntry zipEntry = zipFile.getEntry(file);
@@ -158,7 +160,6 @@ public class UnZip extends DefaultStep {
         tree.addStartElement(c_files);
         tree.addAttribute(xml_base, baseuri.toString());
         for (String fileName: fileList) {
-            System.out.println(fileName);
             tree.addStartElement(c_file);
             tree.addAttribute(new QName("name"), fileName);
             tree.addEndElement();
