@@ -86,7 +86,6 @@ public class UnZip extends DefaultStep {
         Path path = Paths.get(directory).toAbsolutePath();
         File dir  = new File(path.toString());
         if (Files.exists(path)) {
-            System.out.println("[info] Unzip: Directory already exists: " + path);
             // delete directory recursively
             if(overwrite) {
                 System.out.println("[info] Unzip: Deleting directory: " + path);
