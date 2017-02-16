@@ -62,10 +62,9 @@ public class UnZip extends DefaultStep {
 
         if(!zipString.equals("")) {
             if(!pathString.equals("")) {
-                // create base uri
-                URI baseuri = new File(pathString).toURI();
-                // main pipeline
                 try {
+                    // main pipeline
+                    URI baseuri = new File(pathString).getCanonicalFile().toURI();
                     createDirectory(pathString, overwriteBool);
                     ArrayList<String> fileList = unzip(zipString, fileString, pathString);
                     XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
