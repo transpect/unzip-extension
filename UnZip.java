@@ -134,7 +134,7 @@ public class UnZip extends DefaultStep {
     private static String unzipSingleFile(ZipFile zipFile, ZipEntry zipEntry, String outputDirectory) throws IOException {
         String fileName = zipEntry.getName();
         if(zipEntry.isDirectory()) {
-            createDirectory(fileName, false);
+            createDirectory(outputDirectory + "/" + fileName, false);
         } else {
             File newFile = new File(outputDirectory + File.separator + fileName).getAbsoluteFile();
             //create directories on demand
