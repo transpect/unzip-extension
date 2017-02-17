@@ -64,6 +64,9 @@ public class UnZip extends DefaultStep {
             if(!pathString.equals("")) {
                 try {
                     // main pipeline
+                    if(pathString.charAt(pathString.length()-1)!=File.separatorChar){
+                        pathString += File.separator;
+                    }
                     URI baseuri = new File(pathString).getCanonicalFile().toURI();
                     createDirectory(pathString, overwriteBool);
                     ArrayList<String> fileList = unzip(zipString, fileString, pathString);
