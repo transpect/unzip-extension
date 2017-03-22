@@ -76,7 +76,7 @@ public class UnZip extends DefaultStep {
                     result.write(XMLFileList);
                     System.out.println("[info] Unzip finished successfully.");
                 } catch(IOException ioe) {
-                    System.out.println("[ERROR] Unzip: " + ioe.getMessage());
+                    System.err.println("[ERROR] Unzip: " + ioe.getMessage());
                     result.write(createXMLError(ioe.getMessage(), zipString, runtime));
                 }
             } else {
@@ -105,7 +105,7 @@ public class UnZip extends DefaultStep {
            try {
                Files.createDirectories(path);
            } catch(IOException ioe) {
-               System.out.println("[ERROR] " + ioe.getMessage());
+               System.err.println("[ERROR] " + ioe.getMessage());
            }
         }
     }
