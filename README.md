@@ -10,7 +10,7 @@ However, these steps allow only to extract XML files in an archive. To extract o
 file types, we've developed this unzip-extension step for XML calabash. It extracts 
 all files to the specified location and provides an XML data set as output.
 
-```
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <c:files xmlns:c="http://www.w3.org/ns/xproc-step"
          xml:base="file:/C:/home/kraetke/archive">
