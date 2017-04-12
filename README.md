@@ -21,7 +21,6 @@ all files to the specified location and provides an XML data set as output.
 ## Include in XML Calabash
 
 1. add the unzip-extension to your XML Calabash `$XPROC-CONFIG` file
-
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <xproc-config xmlns="http://xmlcalabash.com/ns/configuration"
@@ -32,12 +31,9 @@ all files to the specified location and provides an XML data set as output.
   
 </xproc-config>
 ```
-
 2. add `io/transpect/calabash/extensions/UnZip.class` to your Java `$CLASSPATH` (otherwise XML Calabash will fail with a class not found error)
-
 3. connect `xmlcatalog/catalog.xml` with your `$XMLCATALOG` via `nextCatalog` statement or just pass `-Dxml.catalog.files=xmlcatalog/catalog.xml` as parameter when you run XML Calabash with Java
-
-3. run XML Calabash
+4. run XML Calabash
 
 ```bash
 java \
