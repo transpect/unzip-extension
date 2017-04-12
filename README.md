@@ -14,7 +14,7 @@ all files to the specified location and provides an XML data set as output.
 
 1. add the unzip-extension to your XML Calabash `$XPROC-CONFIG` file
 
-```
+```xml
 <xproc-config xmlns="http://xmlcalabash.com/ns/configuration"
   xmlns:tr="http://transpect.io"
   xmlns:tr-internal="http://transpect.io/internal">
@@ -22,18 +22,19 @@ all files to the specified location and provides an XML data set as output.
   <implementation type="tr-internal:unzip"                class-name="io.transpect.calabash.extensions.UnZip"/>
   
 </xproc-config>
-
 ```
 
 2. add `io/transpect/calabash/extensions/UnZip.class` to your Java `$CLASSPATH` (otherwise XML Calabash will fail with a class not found error)
 
-3. run XML Calabash (note that )
+3. connect `xmlcatalog/catalog.xml` with your `$XMLCATALOG` via `nextCatalog` statement or just pass `-Dxml.catalog.files=xmlcatalog/catalog.xml` as parameter when you run XML Calabash with Java
 
-```
+3. run XML Calabash
+
+```bash
 java \
    -cp "$CLASSPATH" \
    -Dfile.encoding=UTF-8 \
-   -Dxml.catalog.files=$CATALOG \
+   -Dxml.catalog.files=$XMLCATALOG \
    -Dxml.catalog.staticCatalog=1 \
    com.xmlcalabash.drivers.Main \
    -Xtransparent-json \
@@ -44,8 +45,6 @@ java \
    zip=myarchive.zip \
    path=output
 ```
-
-
 
 
 ## compile
