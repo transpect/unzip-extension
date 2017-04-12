@@ -22,8 +22,8 @@ all files to the specified location and provides an XML data set as output.
   <p:import href="http://transpect.io/calabash-extensions/unzip-extension/unzip-declaration.xpl"/>
   
   <tr:unzip name="unzip">
-    <p:with-option name="zip" select="archive.zip"/>
-    <p:with-option name="dest-dir" select="file:/C:/home/kraetke/output"/>
+    <p:with-option name="zip" select="'archive.zip'"/>
+    <p:with-option name="dest-dir" select="'file:/C:/home/kraetke/output'"/>
     <p:with-option name="overwrite" select="'no'"/>
   </tr:unzip>
   
