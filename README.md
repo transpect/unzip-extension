@@ -1,19 +1,60 @@
 # unzip-extension
 
-An unzip extension step for XML Calabash that unzips whole archives.
-It is particularly useful if you want to access zip contents as
-extracted files (and don't want to retrieve single files recursively,
-and potentially base64 encoded).
+An unzip extension step for XML Calabash that unzips entire archives.
 
-Usage example:
+## description 
 
-    java -cp "/path/to/calabash.jar:/path/to/unzip-extension/" com.xmlcalabash.drivers.Main -c file:///uri/of/transpect-config.xml unzip-example.xpl
+XProc 1.0 lacks of a native unzip solution. Therefore, XProc processors such as 
+XML Calabash or Morgana provide own extension steps for extracting zip archives. 
+However, these steps allow only to extract XML files in an archive. To extract other 
+file types, we've developed this unzip-extension step for XML calabash. It extracts 
+all files to the specified location and provides an XML data set as output.
 
-Configure tr:unzip step by passing options to it:
+## include in XML Calabash
 
- * zip (required):      file name (not URI) of a zip file
- * dest-dir (required): directory (relative or absolute; not an URI)
- * overwrite ('yes'/'no', optional, default 'no'): delete dest-dir (if it exists) prior to unzip 
- * file (optional):     file name relative to zip root. If omitted, extract complete zip file
+1. add the unzip-extension to your XML Calabash `$XPROC-CONFIG` file
 
-The directory (and missing subdirectories) will be created if missing.
+```
+<xproc-config xmlns="http://xmlcalabash.com/ns/configuration"
+  xmlns:tr="http://transpect.io"
+  xmlns:tr-internal="http://transpect.io/internal">
+
+  <implementation type="tr-internal:unzip"                class-name="io.transpect.calabash.extensions.UnZip"/>
+  
+</xproc-config>
+
+```
+
+2. add `io/transpect/calabash/extensions/UnZip.class` to your Java `$CLASSPATH` (otherwise XML Calabash will fail with a class not found error)
+
+3. run XML Calabash (note that )
+
+```
+java \
+   -cp "$CLASSPATH" \
+   -Dfile.encoding=UTF-8 \
+   -Dxml.catalog.files=$CATALOG \
+   -Dxml.catalog.staticCatalog=1 \
+   com.xmlcalabash.drivers.Main \
+   -Xtransparent-json \
+   -E org.xmlresolver.Resolver \
+   -U org.xmlresolver.Resolver \
+   -c $XPROC-CONFIG \
+   unzip-example.xpl \
+   zip=myarchive.zip \
+   path=output
+```
+
+
+
+
+## compile
+
+We already provide a class file and a jar file, but feel free to compile this extension for your needs.
+
+1. add the jars of XML Calabash and Saxon to your Java `$CLASSPATH`
+2. compile it
+
+```
+javac -source 1.7 -target 1.7 -d . -cp $CLASSPATH src/main/java/io/transpect/calabash/extensions/UnZip.java
+```
