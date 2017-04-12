@@ -10,10 +10,32 @@ However, these steps allow only to extract XML files in an archive. To extract o
 file types, we've developed this unzip-extension step for XML calabash. It extracts 
 all files to the specified location and provides an XML data set as output.
 
+## XProc example
+
+```xml
+<p:declare-step xmlns:p="http://www.w3.org/ns/xproc"
+  xmlns:tr="http://transpect.io"
+  version="1.0">
+  
+  <p:output port="result"/>
+  
+  <p:import href="http://transpect.io/calabash-extensions/unzip-extension/unzip-declaration.xpl"/>
+  
+  <tr:unzip name="unzip">
+    <p:with-option name="zip" select="archive.zip"/>
+    <p:with-option name="dest-dir" select="file:/C:/home/kraetke/output"/>
+    <p:with-option name="overwrite" select="'no'"/>
+  </tr:unzip>
+  
+</p:declare-step>
+```
+
+The output would look somewhat like this:
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <c:files xmlns:c="http://www.w3.org/ns/xproc-step"
-         xml:base="file:/C:/home/kraetke/archive">
+         xml:base="file:/C:/home/kraetke/output">
    <c:file name="dir/myfile.xml"/>
 </c:files>
 ```
