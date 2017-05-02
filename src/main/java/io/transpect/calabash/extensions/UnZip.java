@@ -159,12 +159,18 @@ public class UnZip extends DefaultStep {
         QName xml_base = new QName("xml", "http://www.w3.org/XML/1998/namespace" ,"base");
         QName c_files = new QName("c", "http://www.w3.org/ns/xproc-step" ,"files"); 
         QName c_file = new QName("c", "http://www.w3.org/ns/xproc-step" ,"file");
+        QName c_dir = new QName("c", "http://www.w3.org/ns/xproc-step" ,"directory");
         TreeWriter tree = new TreeWriter(runtime);
         tree.startDocument(baseuri);
         tree.addStartElement(c_files);
         tree.addAttribute(xml_base, baseuri.toString());
         for (String fileName: fileList) {
-            tree.addStartElement(c_file);
+            File file = new File(baseuri.getPath() + fileName);
+            if(file.isDirectory()){
+                tree.addStartElement(c_dir);
+            } else {
+                tree.addStartElement(c_file);
+            }
             tree.addAttribute(new QName("name"), fileName);
             tree.addEndElement();
         }
