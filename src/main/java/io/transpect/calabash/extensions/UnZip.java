@@ -93,7 +93,7 @@ public class UnZip extends DefaultStep {
             if(overwrite) {
                 System.out.println("[info] Unzip: Deleting directory: " + path);
                 // see https://twitter.com/gimsieke/status/691323769445601281
-                if(path.getNameCount() != 0) {                    
+                if(path.getNameCount() != 0) { 
                     FileUtils.deleteQuietly(dir);
                     Files.createDirectories(path);
                 } else {
