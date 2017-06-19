@@ -55,7 +55,6 @@ public class UnZip extends DefaultStep {
         RuntimeValue path = getOption(new QName("dest-dir"));
         RuntimeValue overwrite = getOption(new QName("overwrite"));
 
-
         // submit empty string if attribute is not set
         String zipString  = (zip  != null) ? zip.getString()  : "";
         String fileString = (file != null) ? file.getString() : "";
@@ -95,7 +94,7 @@ public class UnZip extends DefaultStep {
                 System.out.println("[info] Unzip: Deleting directory: " + path);
                 // see https://twitter.com/gimsieke/status/691323769445601281
                 if(path.getNameCount() != 0) {                    
-                    FileUtils.deleteDirectory(dir);
+                    FileUtils.deleteQuietly(dir);
                     Files.createDirectories(path);
                 } else {
                     System.out.println("[WARNING] Unzip: Directory not deleted. Seems to be your root directory. Index: " + path.getNameCount());
