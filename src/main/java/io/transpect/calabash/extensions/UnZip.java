@@ -137,7 +137,7 @@ public class UnZip extends DefaultStep {
     private static String unzipSingleFile(ZipFile zipFile, ZipEntry zipEntry, String outputDirectory) throws IOException {
         String fileName = zipEntry.getName();
         if(zipEntry.isDirectory()) {
-            createDirectory(outputDirectory + "/" + fileName, false);
+            createDirectory(outputDirectory + File.separator + fileName, false);
         } else {
             File newFile = new File(outputDirectory + File.separator + fileName).getAbsoluteFile();
             //create directories on demand
@@ -164,7 +164,7 @@ public class UnZip extends DefaultStep {
         tree.addStartElement(c_files);
         tree.addAttribute(xml_base, baseuri.toString());
         for (String fileName: fileList) {
-            File file = new File(baseuri.getPath() + fileName);
+            File file = new File(baseuri.getPath() + File.separator + fileName);
             if(file.isDirectory()){
                 tree.addStartElement(c_dir);
             } else {
