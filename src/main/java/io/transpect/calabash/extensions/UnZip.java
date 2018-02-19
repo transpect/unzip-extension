@@ -142,13 +142,14 @@ public class UnZip extends DefaultStep {
             File newFile = new File(outputDirectory + File.separator + fileName).getAbsoluteFile();
             //create directories on demand
             new File(newFile.getParent()).mkdirs();
-            FileOutputStream fos = new FileOutputStream(newFile);
-            byte[] buffer = new byte[4096];
-            InputStream in = zipFile.getInputStream(zipEntry);
-            int len = in.read(buffer);
-            while (len != -1) {
-                fos.write(buffer, 0, len);
-                len = in.read(buffer);
+            try(FileOutputStream fos = new FileOutputStream(newFile)){
+                byte[] buffer = new byte[4096];
+                InputStream in = zipFile.getInputStream(zipEntry);
+                int len = in.read(buffer);
+                while (len != -1) {
+                    fos.write(buffer, 0, len);
+                    len = in.read(buffer);
+                }
             }
         }
         return fileName;
