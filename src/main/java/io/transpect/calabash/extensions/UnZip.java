@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.nio.charset.Charset;
 
 import java.net.URI;
 
@@ -70,10 +71,23 @@ public class UnZip extends DefaultStep {
                     }
                     URI baseuri = new File(pathString).getCanonicalFile().toURI();
                     createDirectory(pathString, overwriteBool);
-                    ArrayList<String> fileList = unzip(zipString, fileString, pathString);
-                    XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
-                    result.write(XMLFileList);
-                    System.out.println("[info] Unzip finished successfully.");
+                    try { // expect UTF-8 file names
+                        ArrayList<String> fileList = unzip(zipString, fileString, pathString, "UTF-8");
+                        XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
+                        result.write(XMLFileList);
+                        System.out.println("[info] Unzip finished successfully.");
+                    } catch(Exception e) {
+                        try { // expect CP437 file names
+                            ArrayList<String> fileList = unzip(zipString, fileString, pathString, "cp437");
+                            XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
+                            result.write(XMLFileList);
+                            System.out.println("[info] Unzip finished successfully.");
+                        }
+                        catch(Exception ee) {
+                            System.err.println("[ERROR] Unzip: " + ee.getMessage());
+                            result.write(createXMLError(e.getMessage(), zipString, runtime));
+                        }
+                    }
                 } catch(IOException ioe) {
                     System.err.println("[ERROR] Unzip: " + ioe.getMessage());
                     result.write(createXMLError(ioe.getMessage(), zipString, runtime));
@@ -109,8 +123,8 @@ public class UnZip extends DefaultStep {
         }
     }
     // create an ArrayList which contains the filenames
-    private static ArrayList<String> unzip(String zip, String file, String outputDirectory) throws IOException {
-        final ZipFile zipFile = new ZipFile( zip );
+    private static ArrayList<String> unzip(String zip, String file, String outputDirectory, String encoding) throws IOException {
+        final ZipFile zipFile = new ZipFile( zip, Charset.forName(encoding) );
         ArrayList<String> fileList = new ArrayList<String>();
         try {
             final Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
