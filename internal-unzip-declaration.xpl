@@ -12,7 +12,7 @@
       it’s safer to use forward slashes for path separators. Not sure whether spaces are ok though. There also may be encoding
       issues related to OS specific encodings of file names that are not UTF-8 compliant.</p:documentation>
   </p:option>
-  <p:option name="dest-dir" required="true">
+  <p:option name="dest-dir" required="false">
     <p:documentation>An OS file system path, not a URL. Will be created if it does not exist (subject to the $overwrite
       option).</p:documentation>
   </p:option>
@@ -23,6 +23,10 @@
   <p:option name="file" required="false">
     <p:documentation>Optionally, a specific relative path to a file within the zip file. Will be restored to its relative path
       below $dest-dir.</p:documentation>
+  </p:option>
+  <p:option name="list-only" required="false" select="'no'">
+    <p:documentation>Optionally, if set to "yes" it provides just a file listing of the zip archive rather than
+      extracting the archive.</p:documentation>
   </p:option>
   <p:output port="result" primary="true">
     <p:documentation>A c:files document with the extracted files, as c:file elements (no hierarchy). There is an @xml:base

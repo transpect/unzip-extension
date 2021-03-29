@@ -55,46 +55,51 @@ public class UnZip extends DefaultStep {
         RuntimeValue file = getOption(new QName("file"));
         RuntimeValue path = getOption(new QName("dest-dir"));
         RuntimeValue overwrite = getOption(new QName("overwrite"));
+        RuntimeValue list = getOption(new QName("list-only"));
 
         // submit empty string if attribute is not set
         String zipString  = (zip  != null) ? zip.getString()  : "";
         String fileString = (file != null) ? file.getString() : "";
         String pathString = (path != null) ? path.getString() : "";
         boolean overwriteBool = (overwrite != null && overwrite.getString().equals("yes")) ? true : false;
-
+        boolean listOnly = ((list != null && list.getString().equals("yes")) || pathString == "") ? true : false;
+        URI baseuri;
         if(!zipString.equals("")) {
-            if(!pathString.equals("")) {
-                try {
-                    // main pipeline
-                    if(pathString.charAt(pathString.length()-1)!=File.separatorChar){
-                        pathString += File.separator;
-                    }
-                    URI baseuri = new File(pathString).getCanonicalFile().toURI();
-                    createDirectory(pathString, overwriteBool);
-                    try { // expect UTF-8 file names
-                        ArrayList<String> fileList = unzip(zipString, fileString, pathString, "UTF-8");
-                        XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
-                        result.write(XMLFileList);
-                        System.out.println("[info] Unzip finished successfully.");
-                    } catch(Exception e) {
-                        try { // expect CP437 file names
-                            ArrayList<String> fileList = unzip(zipString, fileString, pathString, "cp437");
-                            XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
-                            result.write(XMLFileList);
-                            System.out.println("[info] Unzip finished successfully.");
-                        }
-                        catch(Exception ee) {
-                            System.err.println("[ERROR] Unzip: " + ee.getMessage());
-                            result.write(createXMLError(e.getMessage(), zipString, runtime));
-                        }
-                    }
-                } catch(IOException ioe) {
-                    System.err.println("[ERROR] Unzip: " + ioe.getMessage());
-                    result.write(createXMLError(ioe.getMessage(), zipString, runtime));
-                }
-            } else {
-                result.write(createXMLError("The attribute path must not be an empty string.", zipString, runtime));
+          if(listOnly){
+            System.out.println("[info] Only file listing because list-only is 'yes' or no output path was given.");
+          }
+          try {
+            // main pipeline
+            if(!listOnly && pathString.charAt(pathString.length()-1)!=File.separatorChar){
+              pathString += File.separator;
             }
+            if(!listOnly){
+              createDirectory(pathString, overwriteBool);
+              baseuri = new File(pathString).getCanonicalFile().toURI();
+            } else {
+              baseuri = new File(zipString).getCanonicalFile().toURI();;
+            }
+            try { // expect UTF-8 file names
+              ArrayList<String> fileList = unzip(zipString, fileString, pathString, "UTF-8", listOnly);
+              XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
+              result.write(XMLFileList);
+              System.out.println("[info] Unzip finished successfully.");
+            } catch(Exception e) {
+              try { // expect CP437 file names
+                ArrayList<String> fileList = unzip(zipString, fileString, pathString, "cp437", listOnly);
+                XdmNode XMLFileList = createXMLFileList(fileList, baseuri, runtime);
+                result.write(XMLFileList);
+                System.out.println("[info] Unzip finished successfully.");
+              }
+              catch(Exception ee) {
+                System.err.println("[ERROR] Unzip: " + ee.getMessage());
+                result.write(createXMLError(e.getMessage(), zipString, runtime));
+              }
+            }
+          } catch(IOException ioe) {
+            System.err.println("[ERROR] Unzip: " + ioe.getMessage());
+            result.write(createXMLError(ioe.getMessage(), zipString, runtime));
+          }
         } else {
             result.write(createXMLError("The attribute zip must not be an empty string.", zipString, runtime));
         }
@@ -123,7 +128,7 @@ public class UnZip extends DefaultStep {
         }
     }
     // create an ArrayList which contains the filenames
-    private static ArrayList<String> unzip(String zip, String file, String outputDirectory, String encoding) throws IOException {
+  private static ArrayList<String> unzip(String zip, String file, String outputDirectory, String encoding, boolean listOnly) throws IOException {
         final ZipFile zipFile = new ZipFile( zip, Charset.forName(encoding) );
         ArrayList<String> fileList = new ArrayList<String>();
         try {
@@ -132,14 +137,22 @@ public class UnZip extends DefaultStep {
             if(!file.equals("")){
                 // unzip single file
                 final ZipEntry zipEntry = zipFile.getEntry(file);
-                String fileName = unzipSingleFile(zipFile, zipEntry, outputDirectory);
-                fileList.add(fileName);
+                if(!listOnly){
+                  String fileName = unzipSingleFile(zipFile, zipEntry, outputDirectory);
+                  fileList.add(fileName);
+                } else {
+                  fileList.add(zipEntry.getName());
+                }
             } else {
                 // unzip all files
                 while (zipEntries.hasMoreElements()){
                     final ZipEntry zipEntry = zipEntries.nextElement();
-                    String fileName = unzipSingleFile(zipFile, zipEntry, outputDirectory);
-                    fileList.add(fileName);
+                    if(!listOnly){
+                      String fileName = unzipSingleFile(zipFile, zipEntry, outputDirectory);
+                      fileList.add(fileName);
+                    } else {
+                      fileList.add(zipEntry.getName());
+                    }
                 }
             }
         } finally {

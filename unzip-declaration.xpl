@@ -34,8 +34,8 @@
   <p:option name="zip" required="true">
     <p:documentation>file:, http:, https: URI or OS name of a zip archive</p:documentation>
   </p:option>
-  <p:option name="dest-dir" required="true">
-    <p:documentation>file: URI or OS name of a directory that does not need to exist beforehand. The zip archive will be 
+  <p:option name="dest-dir" required="false">
+    <p:documentation>file: URI or OS name of a directory. The zip archive will be 
       unzipped to this directory.</p:documentation>
   </p:option>
   <p:option name="overwrite" select="'yes'">
@@ -47,6 +47,11 @@
       deletion of precious directories. If dest-dir ends in '.tmp', it is assumed that it may safely be overwritten
     in any case.</p:documentation>
   </p:option>
+  <p:option name="list-only" select="'no'" required="false">
+    <p:documentation>Optionally, when set to "yes" only a file listing of the zip archive is provided
+      rather than extracting the zip archive.</p:documentation>
+  </p:option>
+
 
   <p:import href="internal-unzip-declaration.xpl"/>
   <p:import href="http://transpect.io/xproc-util/file-uri/xpl/file-uri.xpl"/>
@@ -78,6 +83,7 @@
       </p:with-option>
       <p:with-option name="dest-dir" select="$actual-dest-dir"/>
       <p:with-option name="overwrite" select="$overwrite"/>
+      <p:with-option name="list-only" select="$list-only"/>
     </tr-internal:unzip>
     <p:add-attribute name="fix-xml-base" match="/*" attribute-name="xml:base">
       <p:documentation>Sometimes the trailing slash was not included, but we need to make sure it’s there.</p:documentation>
