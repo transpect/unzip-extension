@@ -40,7 +40,7 @@ import com.xmlcalabash.util.TypeUtils;
 
 public class UnZip extends DefaultStep {
     private WritablePipe result = null;
-    
+
     public UnZip(XProcRuntime runtime, XAtomicStep step) {
         super(runtime,step);
     }
@@ -117,7 +117,7 @@ public class UnZip extends DefaultStep {
             if(overwrite) {
                 System.out.println("[info] Unzip: Deleting directory: " + path);
                 // see https://twitter.com/gimsieke/status/691323769445601281
-                if(path.getNameCount() != 0) { 
+                if(path.getNameCount() != 0) {
                     FileUtils.deleteQuietly(dir);
                     Files.createDirectories(path);
                 } else {
@@ -189,7 +189,7 @@ public class UnZip extends DefaultStep {
     // create regular XML output with a list of files
     private static XdmNode createXMLFileList(ArrayList<String> fileList, URI baseuri, XProcRuntime runtime) throws SaxonApiException {
         QName xml_base = new QName("xml", "http://www.w3.org/XML/1998/namespace" ,"base");
-        QName c_files = new QName("c", "http://www.w3.org/ns/xproc-step" ,"files"); 
+        QName c_files = new QName("c", "http://www.w3.org/ns/xproc-step" ,"files");
         QName c_file = new QName("c", "http://www.w3.org/ns/xproc-step" ,"file");
         QName c_dir = new QName("c", "http://www.w3.org/ns/xproc-step" ,"directory");
         TreeWriter tree = new TreeWriter(runtime);
@@ -212,17 +212,19 @@ public class UnZip extends DefaultStep {
     private XdmNode createXMLError(String message, String zip, XProcRuntime runtime){
         TreeWriter tree = new TreeWriter(runtime);
         tree.startDocument(step.getNode().getBaseURI());
-        tree.addStartElement(XProcConstants.c_errors);
         AttributeMap attrs = EmptyAttributeMap.getInstance();
-        
+
         attrs.put(TypeUtils.attributeInfo(new QName("code"), "zip-error"));
         attrs.put(TypeUtils.attributeInfo(new QName("href"), zip));
+        tree.addStartElement(XProcConstants.c_errors, attrs);
+        
+        attrs = EmptyAttributeMap.getInstance();
         attrs.put(TypeUtils.attributeInfo(new QName("code"), "error"));
         tree.addStartElement(XProcConstants.c_error, attrs);
         tree.addText(message);
         tree.addEndElement();
         tree.addEndElement();
         tree.endDocument();
-        return tree.getResult();        
+        return tree.getResult();
     }
 }
