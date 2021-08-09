@@ -32,6 +32,11 @@ import com.xmlcalabash.library.DefaultStep;
 import com.xmlcalabash.model.RuntimeValue;
 import com.xmlcalabash.runtime.XAtomicStep;
 import com.xmlcalabash.util.TreeWriter;
+import net.sf.saxon.om.AttributeMap;
+import net.sf.saxon.om.SingletonAttributeMap;
+import net.sf.saxon.om.AttributeInfo;
+import net.sf.saxon.om.EmptyAttributeMap;
+import com.xmlcalabash.util.TypeUtils;
 
 public class UnZip extends DefaultStep {
     private WritablePipe result = null;
@@ -189,16 +194,14 @@ public class UnZip extends DefaultStep {
         QName c_dir = new QName("c", "http://www.w3.org/ns/xproc-step" ,"directory");
         TreeWriter tree = new TreeWriter(runtime);
         tree.startDocument(baseuri);
-        tree.addStartElement(c_files);
-        tree.addAttribute(xml_base, baseuri.toString());
+        tree.addStartElement(c_files, SingletonAttributeMap.of(TypeUtils.attributeInfo(xml_base, baseuri.toString())));
         for (String fileName: fileList) {
             File file = new File(baseuri.getPath() + File.separator + fileName);
             if(file.isDirectory()){
-                tree.addStartElement(c_dir);
+                tree.addStartElement(c_dir, SingletonAttributeMap.of(TypeUtils.attributeInfo(new QName("name"), fileName)));
             } else {
-                tree.addStartElement(c_file);
+                tree.addStartElement(c_file, SingletonAttributeMap.of(TypeUtils.attributeInfo(new QName("name"), fileName)));
             }
-            tree.addAttribute(new QName("name"), fileName);
             tree.addEndElement();
         }
         tree.addEndElement();
@@ -210,10 +213,12 @@ public class UnZip extends DefaultStep {
         TreeWriter tree = new TreeWriter(runtime);
         tree.startDocument(step.getNode().getBaseURI());
         tree.addStartElement(XProcConstants.c_errors);
-        tree.addAttribute(new QName("code"), "zip-error");
-        tree.addAttribute(new QName("href"), zip);
-        tree.addStartElement(XProcConstants.c_error);
-        tree.addAttribute(new QName("code"), "error");
+        AttributeMap attrs = EmptyAttributeMap.getInstance();
+        
+        attrs.put(TypeUtils.attributeInfo(new QName("code"), "zip-error"));
+        attrs.put(TypeUtils.attributeInfo(new QName("href"), zip));
+        attrs.put(TypeUtils.attributeInfo(new QName("code"), "error"));
+        tree.addStartElement(XProcConstants.c_error, attrs);
         tree.addText(message);
         tree.addEndElement();
         tree.addEndElement();
