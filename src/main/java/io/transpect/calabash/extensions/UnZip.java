@@ -214,12 +214,12 @@ public class UnZip extends DefaultStep {
         tree.startDocument(step.getNode().getBaseURI());
         AttributeMap attrs = EmptyAttributeMap.getInstance();
 
-        attrs.put(TypeUtils.attributeInfo(new QName("code"), "zip-error"));
-        attrs.put(TypeUtils.attributeInfo(new QName("href"), zip));
+        attrs = attrs.put(TypeUtils.attributeInfo(new QName("code"), "zip-error"));
+        attrs = attrs.put(TypeUtils.attributeInfo(new QName("href"), zip));
         tree.addStartElement(XProcConstants.c_errors, attrs);
         
         attrs = EmptyAttributeMap.getInstance();
-        attrs.put(TypeUtils.attributeInfo(new QName("code"), "error"));
+        attrs = attrs.put(TypeUtils.attributeInfo(new QName("code"), "error"));
         tree.addStartElement(XProcConstants.c_error, attrs);
         tree.addText(message);
         tree.addEndElement();
